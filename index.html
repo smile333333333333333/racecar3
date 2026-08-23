@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>DESERT RUN</title>
+
+<style>
+*{box-sizing:border-box;user-select:none}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;font-family:Arial;background:#e2b247}
+#game{position:relative;width:100vw;height:100vh;overflow:hidden;background:#e2b247}
+#desert{position:absolute;inset:0;background:#e2b247}
+.sun{position:absolute;right:10%;top:8%;width:90px;height:90px;border-radius:50%;background:#fff0a0;box-shadow:0 0 40px #fff}
+.dune{position:absolute;width:150%;height:170px;left:-25%;border-radius:50%}
+.d1{top:35%;background:#d99f35}
+.d2{top:55%;background:#e8bc4e}
+.d3{top:75%;background:#d39a34}
+
+#road{
+ position:absolute;left:28%;width:44%;height:100%;
+ background:#57534d;border-left:8px solid #ddd3b5;
+ border-right:8px solid #ddd3b5;overflow:hidden;z-index:10
+}
+.line{position:absolute;width:6px;height:90px;background:white;left:33.3%}
+.line.r{left:66.6%}
+
+#player{
+ position:absolute;width:52px;height:88px;left:50%;bottom:65px;
+ transform:translateX(-50%);background:#c33a2d;border-radius:10px;
+ z-index:80;box-shadow:0 5px 12px #000b
+}
+.win{position:absolute;width:38px;height:27px;left:7px;top:10px;background:#9bd3df;border-radius:6px}
+.stripe{position:absolute;width:40px;height:5px;left:6px;top:42px;background:#e8d36c}
+.wheel{position:absolute;width:10px;height:27px;top:20px;background:#111;border-radius:4px}
+.wheel.l{left:-7px}.wheel.r{right:-7px}
+.light{position:absolute;width:10px;height:7px;bottom:5px;background:#fff;border-radius:2px}
+.light.l{left:7px}.light.r{right:7px}
+
+.person{
+ position:absolute;width:34px;height:65px;z-index:60
+}
+.head{position:absolute;width:21px;height:21px;left:6px;border-radius:50%;background:#c9855b}
+.body{position:absolute;width:26px;height:31px;left:4px;top:20px;border-radius:7px;background:#456}
+.legs{position:absolute;width:7px;height:17px;top:47px;background:#222}
+.legs.l{left:7px}.legs.r{right:7px}
+.tag{
+ position:absolute;bottom:66px;left:50%;transform:translateX(-50%);
+ background:white;color:#111;padding:5px 7px;border-radius:7px;
+ font-size:9px;font-weight:bold;white-space:nowrap
+}
+
+.alien .head{background:#79d66e;border-radius:50% 50% 45% 45%}
+.alien .body{background:#6b4aa1}
+.alien .head:after{
+ content:"";position:absolute;left:4px;top:7px;width:4px;height:4px;
+ background:#111;border-radius:50%;box-shadow:9px 0 #111
+}
+
+.robot .head{background:#aaa;border-radius:4px}
+.robot .body{background:#777;border-radius:3px}
+
+.ghost .head{background:white;box-shadow:0 0 12px white}
+.ghost .body{background:white}
+
+.strange .body{background:#d45d9d}
+
+#tornado{
+ position:absolute;width:100px;height:180px;top:-200px;z-index:70
+}
+.twister{
+ position:absolute;left:20px;width:60px;height:160px;
+ background:linear-gradient(transparent,#6b604d,#403a31);
+ clip-path:polygon(40% 0,60% 0,78% 25%,67% 50%,57% 75%,54% 100%,43% 100%,40% 75%,28% 50%,32% 25%)
+}
+.dust{
+ position:absolute;bottom:0;width:100px;height:30px;border-radius:50%;background:#5b5143aa
+}
+
+.rock{
+ position:absolute;width:40px;height:22px;border-radius:50%;background:#776650;z-index:20
+}
+.cactus{
+ position:absolute;width:14px;height:58px;border-radius:8px;background:#3d6e3b;z-index:20
+}
+
+.bump{
+ position:absolute;width:100%;height:18px;left:0;
+ background:repeating-linear-gradient(90deg,#3e3b37 0 18px,#716a5e 18px 36px);
+ z-index:15
+}
+
+#hud{
+ position:absolute;top:10px;left:10px;z-index:150;color:white;
+ font-weight:bold;text-shadow:2px 2px 4px #000;line-height:1.5
+}
+
+#message{
+ position:absolute;top:100px;left:50%;transform:translateX(-50%);
+ background:#000c;color:white;padding:8px 12px;border-radius:9px;
+ z-index:160;opacity:0;white-space:nowrap
+}
+
+#controls{
+ position:absolute;bottom:15px;left:50%;transform:translateX(-50%);
+ display:flex;gap:18px;z-index:180
+}
+.control{
+ width:85px;height:62px;display:flex;align-items:center;justify-content:center;
+ color:white;background:#0009;border:2px solid white;border-radius:12px;
+ font-size:32px;touch-action:none
+}
+
+.screen{
+ position:absolute;inset:0;z-index:300;background:#000d;color:white;
+ display:flex;flex-direction:column;align-items:center;justify-content:center;
+ text-align:center;padding:25px
+}
+.screen h1{font-size:40px;letter-spacing:3px}
+.screen p{max-width:480px;line-height:1.5}
+button{
+ padding:15px 30px;border:0;border-radius:9px;background:#b74a29;
+ color:white;font-size:20px;font-weight:bold
+}
+.hidden{display:none!important}
+
+.shake{animation:shake .2s}
+.bigshake{animation:shake .45s}
+@keyframes shake{
+ 0%{transform:translate(0)}
+ 25%{transform:translate(-8px,4px)}
+ 50%{transform:translate(8px,-5px)}
+ 75%{transform:translate(-6px,3px)}
+ 100%{transform:translate(0)}
+}
+
+@media(max-width:600px){
+ #road{left:23%;width:54%}
+ .screen h1{font-size:32px}
+}
+</style>
+</head>
+
+<body>
+
+<div id="game">
+
+<div id="desert">
+<div class="sun"></div>
+<div class="dune d1"></div>
+<div class="dune d2"></div>
+<div class="dune d3"></div>
+</div>
+
+<div id="road"></div>
+
+<div id="player">
+<div class="win"></div>
+<div class="stripe"></div>
+<div class="wheel l"></div>
+<div class="wheel r"></div>
+<div class="light l"></div>
+<div class="light r"></div>
+</div>
+
+<div id="hud">
+DISTANCE: <span id="distance">0</span> km<br>
+PASSENGERS: <span id="count">0</span>
+</div>
+
+<div id="message"></div>
+
+<div id="controls">
+<div class="control" id="left">◀</div>
+<div class="control" id="right">▶</div>
+</div>
+
+<div id="start" class="screen">
+<h1>DESERT RUN</h1>
+<p>
+A tiny road through a completely empty desert.<br><br>
+Pick up people you find along the way.<br><br>
+Some of them are normal.<br>
+Some definitely aren't.
+</p>
+<button onclick="startGame()">START DRIVING</button>
+</div>
+
+<div id="gameover" class="screen hidden">
+<h1>THE END</h1>
+<p>
+Distance: <b><span id="final">0</span> km</b><br>
+Passengers: <b><span id="finalCount">0</span></b>
+</p>
+<button onclick="startGame()">DRIVE AGAIN</button>
+</div>
+
+</div>
+
+<script>
+
+/* =========================
+   VARIABLES
+========================= */
+
+const road=document.getElementById("road");
+const player=document.getElementById("player");
+const game=document.getElementById("game");
+const message=document.getElementById("message");
+
+let running=false;
+let last=0;
+let x=0;
+let steer=0;
+let distance=0;
+let count=0;
+let speed=11;
+
+let people=[];
+let scenery=[];
+let bumps=[];
+let tornado=null;
+
+let personTimer=400;
+let sceneryTimer=200;
+let bumpTimer=800;
+let tornadoTimer=5000;
+
+let killerSeen=false;
+
+
+/* =========================
+   ROAD
+========================= */
+
+for(let i=0;i<16;i++){
+ for(let side of ["","r"]){
+  let l=document.createElement("div");
+  l.className="line "+side;
+  l.style.top=i*120-120+"px";
+  road.appendChild(l);
+ }
+}
+
+
+/* =========================
+   PEOPLE TYPES
+========================= */
+
+const types=[
+ ["normal","#456"],
+ ["normal","#854"],
+ ["normal","#563"],
+ ["alien","alien"],
+ ["robot","robot"],
+ ["ghost","ghost"],
+ ["strange","#d45d9d"],
+ ["normal","#287"],
+ ["normal","#673"]
+];
+
+const dialogue=[
+ "THANK YOU!",
+ "I HAVE BEEN WAITING FOREVER.",
+ "NICE CAR.",
+ "IS THE TOWN FAR?",
+ "IT'S HOT OUT HERE.",
+ "I THOUGHT THIS ROAD WAS EMPTY.",
+ "KEEP DRIVING.",
+ "DON'T ASK QUESTIONS.",
+ "I REALLY NEED A RIDE."
+];
+
+
+/* =========================
+   CREATE PERSON
+========================= */
+
+function spawnPerson(){
+
+ if(!running)return;
+
+ let p=document.createElement("div");
+ p.className="person";
+
+ let chosen=types[
+   Math.floor(Math.random()*types.length)
+ ];
+
+ p.classList.add(chosen[0]);
+
+ p.innerHTML=`
+ <div class="head"></div>
+ <div class="body"></div>
+ <div class="legs l"></div>
+ <div class="legs r"></div>
+ <div class="tag">NEED RIDE</div>
+ `;
+
+ let side=Math.random()<.5;
+ let px=side?
+   5+Math.random()*18:
+   road.clientWidth-25-Math.random()*18;
+
+ p.style.left=px+"px";
+ p.style.top="-80px";
+
+ road.appendChild(p);
+
+ let killer=false;
+
+ /*
+   Rare secret passenger.
+   They look normal at first.
+ */
+
+ if(!killerSeen && count>=2 && Math.random()<.13){
+   killer=true;
+   killerSeen=true;
+ }
+
+ people.push({
+   el:p,
+   y:-80,
+   killer:killer,
+   type:chosen[0],
+   picked:false
+ });
+}
+
+
+/* =========================
+   PICKUP
+========================= */
+
+function pickup(p){
+
+ p.picked=true;
+ count++;
+
+ document.getElementById("count").textContent=count;
+
+ if(p.killer){
+
+  show(
+   "The passenger gets into your car..."
+  );
+
+  /*
+    No graphic violence.
+    The passenger becomes a mystery.
+  */
+
+ }else if(p.type==="alien"){
+
+  show("THE ALIEN GETS IN.");
+
+ }else if(p.type==="robot"){
+
+  show("ROBOT PASSENGER ACQUIRED.");
+
+ }else if(p.type==="ghost"){
+
+  show("THE GHOST IS VERY COLD.");
+
+ }else{
+
+  show(
+   dialogue[
+    Math.floor(Math.random()*dialogue.length)
+   ]
+  );
+
+ }
+
+ p.el.remove();
+}
+
+
+/* =========================
+   MOVE PEOPLE
+========================= */
+
+function movePeople(d){
+
+ for(let i=people.length-1;i>=0;i--){
+
+  let p=people[i];
+
+  if(p.picked)continue;
+
+  p.y+=speed*.9*d;
+  p.el.style.top=p.y+"px";
+
+  if(hit(player,p.el)){
+   pickup(p);
+   people.splice(i,1);
+   continue;
+  }
+
+  if(p.y>innerHeight+100){
+   p.el.remove();
+   people.splice(i,1);
+  }
+ }
+}
+
+
+/* =========================
+   SCENERY
+========================= */
+
+function spawnScenery(){
+
+ let e=document.createElement("div");
+
+ if(Math.random()<.55){
+
+  e.className="cactus";
+
+ }else{
+
+  e.className="rock";
+
+ }
+
+ e.style.top="-70px";
+
+ if(Math.random()<.5)
+  e.style.left=Math.random()*20+"%";
+ else
+  e.style.right=Math.random()*20+"%";
+
+ document.getElementById("desert").appendChild(e);
+
+ scenery.push({
+  el:e,
+  y:-70
+ });
+}
+
+
+function moveScenery(d){
+
+ for(let i=scenery.length-1;i>=0;i--){
+
+  let s=scenery[i];
+
+  s.y+=speed*.9*d;
+  s.el.style.top=s.y+"px";
+
+  if(s.y>innerHeight+100){
+
+   s.el.remove();
+   scenery.splice(i,1);
+
+  }
+ }
+}
+
+
+/* =========================
+   BUMPS
+========================= */
+
+function spawnBump(){
+
+ let b=document.createElement("div");
+ b.className="bump";
+ b.style.top="-30px";
+
+ road.appendChild(b);
+
+ bumps.push({
+  el:b,
+  y:-30
+ });
+}
+
+
+function moveBumps(d){
+
+ for(let i=bumps.length-1;i>=0;i--){
+
+  let b=bumps[i];
+
+  b.y+=speed*d;
+  b.el.style.top=b.y+"px";
+
+  if(hit(player,b.el)){
+
+   shake(false);
+   show("BUMP!");
+
+   b.el.remove();
+   bumps.splice(i,1);
+   continue;
+  }
+
+  if(b.y>innerHeight+80){
+
+   b.el.remove();
+   bumps.splice(i,1);
+
+  }
+ }
+}
+
+
+/* =========================
+   TORNADO
+========================= */
+
+function spawnTornado(){
+
+ if(tornado)return;
+
+ let t=document.createElement("div");
+ t.id="tornado";
+
+ t.innerHTML=`
+ <div class="twister"></div>
+ <div class="dust"></div>
+ `;
+
+ t.style.left=
+   Math.random()*.7*innerWidth+"px";
+
+ t.style.top="-200px";
+
+ game.appendChild(t);
+
+ tornado={
+  el:t,
+  y:-200,
+  x:parseFloat(t.style.left)
+ };
+
+ show("TORNADO!");
+}
+
+
+function moveTornado(d){
+
+ if(!tornado)return;
+
+ tornado.y+=speed*.75*d;
+
+ tornado.x+=
+   Math.sin(tornado.y/100)*1.4*d;
+
+ tornado.el.style.top=
+   tornado.y+"px";
+
+ tornado.el.style.left=
+   tornado.x+"px";
+
+ if(hit(player,tornado.el)){
+
+  shake(true);
+  show("THE TORNADO THREW YOU AROUND!");
+
+  tornado.el.remove();
+  tornado=null;
+  return;
+ }
+
+ if(tornado.y>innerHeight+250){
+
+  tornado.el.remove();
+  tornado=null;
+
+ }
+}
+
+
+/* =========================
+   COLLISION
+========================= */
+
+function hit(a,b){
+
+ let A=a.getBoundingClientRect();
+ let B=b.getBoundingClientRect();
+
+ return !(
+  A.right<B.left+8 ||
+  A.left>B.right-8 ||
+  A.bottom<B.top+8 ||
+  A.top>B.bottom-8
+ );
+}
+
+
+/* =========================
+   MESSAGE
+========================= */
+
+function show(text){
+
+ message.textContent=text;
+ message.style.opacity=1;
+
+ clearTimeout(show.timer);
+
+ show.timer=setTimeout(()=>{
+  message.style.opacity=0;
+ },1700);
+}
+
+
+/* =========================
+   SHAKE
+========================= */
+
+function shake(big){
+
+ game.classList.remove("shake","bigshake");
+ void game.offsetWidth;
+
+ game.classList.add(
+  big?"bigshake":"shake"
+ );
+}
+
+
+/* =========================
+   RANDOM EVENTS
+========================= */
+
+function event(){
+
+ let events=[
+  "You see something move on the horizon.",
+  "A tumbleweed crosses the road.",
+  "A distant siren echoes.",
+  "The desert suddenly goes silent.",
+  "A flock of birds flies overhead.",
+  "You see an abandoned car.",
+  "A strange light appears in the sky.",
+  "A road sign points nowhere.",
+  "Something is following you.",
+  "The road gets extremely bumpy."
+ ];
+
+ let e=
+  events[Math.floor(Math.random()*events.length)];
+
+ show(e);
+
+ if(e==="The road gets extremely bumpy.")
+  shake(true);
+
+ if(e==="A strange light appears in the sky.")
+  show("THE LIGHT IS MOVING.");
+
+ if(e==="You see an abandoned car.")
+  show("THERE'S NOBODY INSIDE.");
+
+}
+
+
+/* =========================
+   UPDATE ROAD
+========================= */
+
+function moveRoad(d){
+
+ document.querySelectorAll(".line").forEach(l=>{
+
+  let y=parseFloat(l.style.top);
+
+  y+=speed*.95*d;
+
+  if(y>innerHeight+100)y=-120;
+
+  l.style.top=y+"px";
+
+ });
+}
+
+
+/* =========================
+   PLAYER
+========================= */
+
+function updatePlayer(d){
+
+ x+=steer*1.8*d;
+
+ let max=road.clientWidth/2-38;
+
+ x=Math.max(-max,Math.min(max,x));
+
+ player.style.left=
+  `calc(50% + ${x}px)`;
+}
+
+
+/* =========================
+   MAIN LOOP
+========================= */
+
+function loop(time){
+
+ if(!running)return;
+
+ if(!last)last=time;
+
+ let d=(time-last)/16.67;
+
+ if(d>3)d=3;
+
+ last=time;
+
+ distance+=speed*d*.08;
+
+ speed+=.0007*d;
+
+ updatePlayer(d);
+ moveRoad(d);
+ movePeople(d);
+ moveScenery(d);
+ moveBumps(d);
+ moveTornado(d);
+
+ personTimer-=d;
+ sceneryTimer-=d;
+ bumpTimer-=d;
+ tornadoTimer-=d;
+
+ if(personTimer<=0){
+
+  spawnPerson();
+
+  /*
+    Sometimes two people
+    appear together.
+  */
+
+  if(Math.random()<.18)
+   setTimeout(()=>{
+    if(running)spawnPerson();
+   },250);
+
+  personTimer=
+   750+Math.random()*1100;
+ }
+
+ if(sceneryTimer<=0){
+
+  spawnScenery();
+
+  sceneryTimer=
+   250+Math.random()*500;
+ }
+
+ if(bumpTimer<=0){
+
+  spawnBump();
+
+  bumpTimer=
+   900+Math.random()*1000;
+ }
+
+ if(tornadoTimer<=0){
+
+  if(Math.random()<.55)
+   spawnTornado();
+
+  tornadoTimer=
+   5000+Math.random()*7000;
+ }
+
+ if(Math.random()<.002)
+  event();
+
+ /*
+   If the secret passenger is
+   riding with you, strange
+   messages occasionally appear.
+ */
+
+ if(killerSeen && Math.random()<.0015){
+
+  show(
+   "Your passenger is staring at you."
+  );
+
+ }
+
+ document.getElementById("distance")
+ .textContent=Math.floor(distance);
+
+ requestAnimationFrame(loop);
+}
+
+
+/* =========================
+   START
+========================= */
+
+function clearAll(){
+
+ people.forEach(p=>p.el.remove());
+ scenery.forEach(s=>s.el.remove());
+ bumps.forEach(b=>b.el.remove());
+
+ if(tornado)tornado.el.remove();
+
+ people=[];
+ scenery=[];
+ bumps=[];
+ tornado=null;
+}
+
+
+function startGame(){
+
+ clearAll();
+
+ running=true;
+ last=0;
+ x=0;
+ steer=0;
+ distance=0;
+ count=0;
+ speed=11;
+
+ personTimer=500;
+ sceneryTimer=100;
+ bumpTimer=700;
+ tornadoTimer=4000;
+
+ killerSeen=false;
+
+ document.getElementById("count")
+ .textContent="0";
+
+ document.getElementById("distance")
+ .textContent="0";
+
+ player.style.left="50%";
+
+ document.getElementById("start")
+ .classList.add("hidden");
+
+ document.getElementById("gameover")
+ .classList.add("hidden");
+
+ requestAnimationFrame(loop);
+}
+
+
+/* =========================
+   END
+========================= */
+
+function endGame(){
+
+ running=false;
+
+ document.getElementById("final")
+ .textContent=Math.floor(distance);
+
+ document.getElementById("finalCount")
+ .textContent=count;
+
+ document.getElementById("gameover")
+ .classList.remove("hidden");
+}
+
+
+/* =========================
+   CONTROLS
+========================= */
+
+document.addEventListener("keydown",e=>{
+
+ if(
+  e.key==="ArrowLeft"||
+  e.key.toLowerCase()==="a"
+ )
+  steer=-1;
+
+ if(
+  e.key==="ArrowRight"||
+  e.key.toLowerCase()==="d"
+ )
+  steer=1;
+
+});
+
+
+document.addEventListener("keyup",e=>{
+
+ if(
+  e.key==="ArrowLeft"||
+  e.key==="ArrowRight"||
+  e.key.toLowerCase()==="a"||
+  e.key.toLowerCase()==="d"
+ )
+  steer=0;
+
+});
+
+
+function control(button,direction){
+
+ button.addEventListener("pointerdown",e=>{
+  e.preventDefault();
+  steer=direction;
+ });
+
+ button.addEventListener("pointerup",()=>{
+  steer=0;
+ });
+
+ button.addEventListener("pointercancel",()=>{
+  steer=0;
+ });
+
+ button.addEventListener("pointerleave",()=>{
+  steer=0;
+ });
+}
+
+
+control(
+ document.getElementById("left"),
+ -1
+);
+
+control(
+ document.getElementById("right"),
+ 1
+);
+
+</script>
+
+</body>
+</html>
