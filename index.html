@@ -1,0 +1,1862 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+
+<title>Desert Run</title>
+
+<style>
+
+*{
+ box-sizing:border-box;
+ user-select:none;
+ -webkit-user-select:none;
+}
+
+html,body{
+ margin:0;
+ width:100%;
+ height:100%;
+ overflow:hidden;
+ font-family:Arial,sans-serif;
+ background:#d6a05d;
+}
+
+#game{
+ position:relative;
+ width:100vw;
+ height:100vh;
+ overflow:hidden;
+ background:#d6a05d;
+}
+
+/* SKY */
+
+#sky{
+ position:absolute;
+ top:0;
+ left:0;
+ width:100%;
+ height:42%;
+ background:#62b5d6;
+}
+
+/* SAND */
+
+.sand{
+ position:absolute;
+ inset:42% 0 0;
+ background:#d9a35d;
+}
+
+.dune{
+ position:absolute;
+ width:150%;
+ height:130px;
+ left:-25%;
+ border-radius:50%;
+ background:#e3ad68;
+}
+
+.dune.one{
+ top:35%;
+}
+
+.dune.two{
+ top:55%;
+ background:#c99551;
+}
+
+/* ROAD */
+
+#road{
+ position:absolute;
+ left:27%;
+ width:46%;
+ height:100%;
+ background:#555;
+ border-left:9px solid #d6d0bd;
+ border-right:9px solid #d6d0bd;
+ overflow:hidden;
+ z-index:10;
+}
+
+/* ROAD LINES */
+
+.line{
+ position:absolute;
+ width:7px;
+ height:95px;
+ background:#eee;
+ left:33.333%;
+}
+
+.line.right{
+ left:66.666%;
+}
+
+/* ROAD MOVEMENT */
+
+#roadLines{
+ position:absolute;
+ inset:0;
+}
+
+/* PLAYER */
+
+#player{
+ position:absolute;
+ width:52px;
+ height:88px;
+ left:50%;
+ bottom:65px;
+ transform:translateX(-50%);
+ background:#c94027;
+ border-radius:10px;
+ z-index:50;
+ box-shadow:0 5px 12px rgba(0,0,0,.7);
+}
+
+.playerWindow{
+ position:absolute;
+ width:38px;
+ height:27px;
+ left:7px;
+ top:10px;
+ border-radius:6px;
+ background:#9ed8e5;
+}
+
+.playerStripe{
+ position:absolute;
+ width:40px;
+ height:5px;
+ left:6px;
+ top:42px;
+ background:#f2d064;
+}
+
+.wheel{
+ position:absolute;
+ width:10px;
+ height:27px;
+ background:#111;
+ border-radius:4px;
+ top:20px;
+}
+
+.wheel.left{
+ left:-7px;
+}
+
+.wheel.right{
+ right:-7px;
+}
+
+.light{
+ position:absolute;
+ width:10px;
+ height:7px;
+ bottom:5px;
+ background:#fff3b0;
+ border-radius:2px;
+}
+
+.light.left{
+ left:7px;
+}
+
+.light.right{
+ right:7px;
+}
+
+/* PEOPLE */
+
+.person{
+ position:absolute;
+ width:30px;
+ height:60px;
+ z-index:35;
+}
+
+.personHead{
+ position:absolute;
+ width:20px;
+ height:20px;
+ left:5px;
+ border-radius:50%;
+ background:#c98558;
+}
+
+.personBody{
+ position:absolute;
+ width:24px;
+ height:30px;
+ left:3px;
+ top:20px;
+ border-radius:7px;
+ background:#405c72;
+}
+
+.personLeg{
+ position:absolute;
+ width:7px;
+ height:17px;
+ top:47px;
+ background:#272727;
+}
+
+.personLeg.left{
+ left:5px;
+}
+
+.personLeg.right{
+ right:5px;
+}
+
+.personTag{
+ position:absolute;
+ bottom:63px;
+ left:50%;
+ transform:translateX(-50%);
+ background:white;
+ color:#111;
+ padding:4px 7px;
+ border-radius:7px;
+ font-size:10px;
+ font-weight:bold;
+ white-space:nowrap;
+}
+
+/* CACTUS */
+
+.cactus{
+ position:absolute;
+ width:15px;
+ height:55px;
+ background:#397447;
+ border-radius:8px;
+ z-index:5;
+}
+
+.cactus:before{
+ content:"";
+ position:absolute;
+ width:9px;
+ height:24px;
+ left:-7px;
+ top:20px;
+ background:#397447;
+ border-radius:7px;
+}
+
+.cactus:after{
+ content:"";
+ position:absolute;
+ width:9px;
+ height:20px;
+ right:-7px;
+ top:8px;
+ background:#397447;
+ border-radius:7px;
+}
+
+/* ROCKS */
+
+.rock{
+ position:absolute;
+ width:40px;
+ height:25px;
+ border-radius:50%;
+ background:#777;
+ z-index:6;
+}
+
+/* EVENTS */
+
+.event{
+ position:absolute;
+ left:50%;
+ transform:translateX(-50%);
+ top:-100px;
+ z-index:40;
+ font-size:45px;
+ white-space:nowrap;
+}
+
+/* EVENT SIGN */
+
+.sign{
+ position:absolute;
+ width:130px;
+ height:65px;
+ left:50%;
+ transform:translateX(-50%);
+ top:-100px;
+ background:#555;
+ border:6px solid #333;
+ color:white;
+ display:flex;
+ align-items:center;
+ justify-content:center;
+ text-align:center;
+ font-size:15px;
+ font-weight:bold;
+ z-index:40;
+}
+
+/* DUST */
+
+#dust{
+ position:absolute;
+ inset:0;
+ background:rgba(210,170,110,.6);
+ opacity:0;
+ pointer-events:none;
+ z-index:100;
+}
+
+/* HUD */
+
+#hud{
+ position:absolute;
+ top:10px;
+ left:10px;
+ z-index:150;
+ color:white;
+ font-size:16px;
+ font-weight:bold;
+ line-height:1.55;
+ text-shadow:2px 2px 4px #222;
+}
+
+#fuelBar{
+ display:inline-block;
+ width:125px;
+ height:15px;
+ background:#222;
+ border:2px solid white;
+ vertical-align:middle;
+}
+
+#fuelFill{
+ display:block;
+ width:100%;
+ height:100%;
+ background:#39b85a;
+}
+
+/* MESSAGE */
+
+#message{
+ position:absolute;
+ top:105px;
+ left:50%;
+ transform:translateX(-50%);
+ z-index:160;
+ background:rgba(0,0,0,.75);
+ color:white;
+ padding:8px 13px;
+ border-radius:9px;
+ font-weight:bold;
+ opacity:0;
+ white-space:nowrap;
+}
+
+/* CONTROLS */
+
+#controls{
+ position:absolute;
+ bottom:16px;
+ left:50%;
+ transform:translateX(-50%);
+ display:flex;
+ gap:20px;
+ z-index:170;
+}
+
+.control{
+ width:85px;
+ height:62px;
+ display:flex;
+ align-items:center;
+ justify-content:center;
+ background:rgba(0,0,0,.55);
+ border:2px solid white;
+ border-radius:12px;
+ color:white;
+ font-size:32px;
+ touch-action:none;
+}
+
+.control:active{
+ background:rgba(255,255,255,.25);
+}
+
+/* SCREENS */
+
+.screen{
+ position:absolute;
+ inset:0;
+ z-index:300;
+ background:rgba(0,0,0,.82);
+ color:white;
+ display:flex;
+ flex-direction:column;
+ align-items:center;
+ justify-content:center;
+ text-align:center;
+ padding:25px;
+}
+
+.screen h1{
+ margin:0 0 12px;
+ font-size:42px;
+ letter-spacing:3px;
+}
+
+.screen p{
+ max-width:480px;
+ line-height:1.5;
+}
+
+button{
+ border:0;
+ border-radius:9px;
+ padding:15px 32px;
+ background:#d05b22;
+ color:white;
+ font-size:20px;
+ font-weight:bold;
+}
+
+.hidden{
+ display:none!important;
+}
+
+/* SHAKE */
+
+.shake{
+ animation:shake .18s linear;
+}
+
+.bigShake{
+ animation:bigShake .35s linear;
+}
+
+@keyframes shake{
+
+ 0%{transform:translate(0,0)}
+ 25%{transform:translate(-6px,3px)}
+ 50%{transform:translate(6px,-4px)}
+ 75%{transform:translate(-5px,3px)}
+ 100%{transform:translate(0,0)}
+
+}
+
+@keyframes bigShake{
+
+ 0%{transform:translate(0,0)}
+ 20%{transform:translate(-12px,6px)}
+ 40%{transform:translate(10px,-7px)}
+ 60%{transform:translate(-9px,6px)}
+ 80%{transform:translate(8px,-5px)}
+ 100%{transform:translate(0,0)}
+
+}
+
+@media(max-width:600px){
+
+ #road{
+  left:23%;
+  width:54%;
+ }
+
+ .screen h1{
+  font-size:32px;
+ }
+
+}
+
+</style>
+</head>
+
+<body>
+
+<div id="game">
+
+ <div id="sky"></div>
+
+ <div class="sand">
+  <div class="dune one"></div>
+  <div class="dune two"></div>
+ </div>
+
+ <div id="road">
+
+  <div id="roadLines"></div>
+
+ </div>
+
+ <div id="player">
+
+  <div class="playerWindow"></div>
+
+  <div class="playerStripe"></div>
+
+  <div class="wheel left"></div>
+  <div class="wheel right"></div>
+
+  <div class="light left"></div>
+  <div class="light right"></div>
+
+ </div>
+
+ <div id="hud">
+
+  DISTANCE:
+  <span id="distance">0</span> km
+
+  <br>
+
+  PASSENGERS:
+  <span id="passengers">0</span>
+
+  <br>
+
+  MONEY:
+  $<span id="money">0</span>
+
+  <br>
+
+  FUEL:
+
+  <span id="fuelBar">
+   <span id="fuelFill"></span>
+  </span>
+
+ </div>
+
+ <div id="message"></div>
+
+ <div id="dust"></div>
+
+ <div id="controls">
+
+  <div class="control" id="leftButton">
+   ◀
+  </div>
+
+  <div class="control" id="rightButton">
+   ▶
+  </div>
+
+ </div>
+
+ <!-- START -->
+
+ <div id="startScreen" class="screen">
+
+  <h1>DESERT RUN</h1>
+
+  <p>
+
+   Drive across the desert highway.
+
+   <br><br>
+
+   Pick up people waiting beside the road,
+   dodge obstacles and survive random events.
+
+   <br><br>
+
+   Watch your fuel.
+
+   <br><br>
+
+   <b>Arrow Keys / A & D</b>
+   <br>
+   or use the buttons.
+
+  </p>
+
+  <button id="startButton">
+   START RUN
+  </button>
+
+ </div>
+
+ <!-- GAME OVER -->
+
+ <div id="gameOver" class="screen hidden">
+
+  <h1 id="gameOverTitle">
+   RUN OVER
+  </h1>
+
+  <p>
+
+   Distance:
+   <b>
+    <span id="finalDistance">0</span> km
+   </b>
+
+   <br>
+
+   Passengers:
+   <b>
+    <span id="finalPassengers">0</span>
+   </b>
+
+   <br>
+
+   Money:
+   <b>
+    $<span id="finalMoney">0</span>
+   </b>
+
+   <br><br>
+
+   Best Distance:
+   <b>
+    <span id="bestDistance">0</span> km
+   </b>
+
+  </p>
+
+  <button id="restartButton">
+   DRIVE AGAIN
+  </button>
+
+ </div>
+
+</div>
+
+<script>
+
+/* =========================
+   SETUP
+========================= */
+
+const game=
+document.getElementById("game");
+
+const road=
+document.getElementById("road");
+
+const roadLines=
+document.getElementById("roadLines");
+
+const player=
+document.getElementById("player");
+
+const distanceText=
+document.getElementById("distance");
+
+const passengersText=
+document.getElementById("passengers");
+
+const moneyText=
+document.getElementById("money");
+
+const fuelFill=
+document.getElementById("fuelFill");
+
+const message=
+document.getElementById("message");
+
+const dust=
+document.getElementById("dust");
+
+const startScreen=
+document.getElementById("startScreen");
+
+const gameOver=
+document.getElementById("gameOver");
+
+let running=false;
+
+let lastTime=0;
+
+let playerX=0;
+
+let steering=0;
+
+let distance=0;
+
+let passengers=0;
+
+let money=0;
+
+let fuel=100;
+
+let speed=12;
+
+let traffic=[];
+
+let people=[];
+
+let scenery=[];
+
+let eventTimer=0;
+
+let personTimer=0;
+
+let sceneryTimer=0;
+
+let bumpTimer=0;
+
+
+/* BEST DISTANCE */
+
+let bestDistance=
+Number(
+ localStorage.getItem("desertBest")||0
+);
+
+document.getElementById(
+ "bestDistance"
+).textContent=bestDistance;
+
+
+/* =========================
+   ROAD LINES
+========================= */
+
+function createRoadLines(){
+
+ for(
+  let i=0;
+  i<15;
+  i++
+ ){
+
+  let a=
+  document.createElement("div");
+
+  a.className="line";
+
+  a.style.top=
+  (i*120-120)+"px";
+
+  roadLines.appendChild(a);
+
+
+  let b=
+  document.createElement("div");
+
+  b.className=
+  "line right";
+
+  b.style.top=
+  (i*120-120)+"px";
+
+  roadLines.appendChild(b);
+
+ }
+
+}
+
+function moveRoad(delta){
+
+ let lines=
+ roadLines.children;
+
+ for(
+  let i=0;
+  i<lines.length;
+  i++
+ ){
+
+  let y=
+  parseFloat(
+   lines[i].style.top
+  );
+
+  y+=speed*.95*delta;
+
+  if(
+   y>innerHeight+100
+  )
+   y=-120;
+
+  lines[i].style.top=
+  y+"px";
+ }
+
+}
+
+
+/* =========================
+   MESSAGE
+========================= */
+
+function showMessage(text){
+
+ message.textContent=text;
+
+ message.style.opacity="1";
+
+ clearTimeout(showMessage.timer);
+
+ showMessage.timer=
+ setTimeout(
+  ()=>{
+   message.style.opacity="0";
+  },
+  1300
+ );
+
+}
+
+
+/* =========================
+   SHAKE
+========================= */
+
+function shake(big=false){
+
+ game.classList.remove(
+  "shake",
+  "bigShake"
+ );
+
+ void game.offsetWidth;
+
+ game.classList.add(
+  big?"bigShake":"shake"
+ );
+
+}
+
+
+/* =========================
+   PLAYER
+========================= */
+
+function updatePlayer(delta){
+
+ playerX+=
+ steering*
+ 1.75*
+ delta;
+
+ let max=
+ road.clientWidth/2-40;
+
+ if(
+  playerX>max
+ )
+  playerX=max;
+
+ if(
+  playerX<-max
+ )
+  playerX=-max;
+
+ player.style.left=
+ `calc(50% + ${playerX}px)`;
+
+}
+
+
+/* =========================
+   PEOPLE
+========================= */
+
+function createPerson(){
+
+ if(!running)return;
+
+ let p=
+ document.createElement("div");
+
+ p.className="person";
+
+ p.innerHTML=`
+
+  <div class="personHead"></div>
+
+  <div class="personBody"></div>
+
+  <div class="personLeg left"></div>
+
+  <div class="personLeg right"></div>
+
+  <div class="personTag">
+   PICK ME UP
+  </div>
+
+ `;
+
+ /*
+  Put people beside
+  the smaller road.
+ */
+
+ let side=
+ Math.random()<.5;
+
+ let x;
+
+ if(side){
+
+  x=
+  8+
+  Math.random()*35;
+
+ }else{
+
+  x=
+  road.clientWidth-
+  8-
+  Math.random()*35;
+
+ }
+
+ p.style.left=
+ x+"px";
+
+ p.style.top=
+ "-80px";
+
+ road.appendChild(p);
+
+ people.push({
+
+  element:p,
+
+  x:x,
+
+  y:-80
+
+ });
+
+}
+
+
+/* =========================
+   PEOPLE MOVEMENT
+========================= */
+
+function movePeople(delta){
+
+ for(
+  let i=people.length-1;
+  i>=0;
+  i--
+ ){
+
+  let person=
+  people[i];
+
+  person.y+=
+  speed*.9*delta;
+
+  person.element.style.top=
+  person.y+"px";
+
+
+  if(
+   nearPlayer(
+    person.element
+   )
+  ){
+
+   passengers++;
+
+   let reward=
+   20+
+   Math.floor(
+    Math.random()*40
+   );
+
+   money+=reward;
+
+   passengersText.textContent=
+   passengers;
+
+   moneyText.textContent=
+   money;
+
+   showMessage(
+    "PASSENGER +$"+reward
+   );
+
+   person.element.remove();
+
+   people.splice(i,1);
+
+   continue;
+
+  }
+
+
+  if(
+   person.y>
+   innerHeight+100
+  ){
+
+   person.element.remove();
+
+   people.splice(i,1);
+
+  }
+
+ }
+
+}
+
+
+/* =========================
+   COLLISION
+========================= */
+
+function nearPlayer(element){
+
+ let A=
+ player.getBoundingClientRect();
+
+ let B=
+ element.getBoundingClientRect();
+
+ return !(
+  A.right<
+  B.left-25||
+
+  A.left>
+  B.right+25||
+
+  A.bottom<
+  B.top||
+
+  A.top>
+  B.bottom
+ );
+
+}
+
+
+/* =========================
+   SCENERY
+========================= */
+
+function createScenery(){
+
+ let obj=
+ document.createElement("div");
+
+ if(
+  Math.random()<.7
+ ){
+
+  obj.className=
+  "cactus";
+
+ }else{
+
+  obj.className=
+  "rock";
+
+ }
+
+
+ obj.style.top=
+ "-80px";
+
+
+ if(
+  Math.random()<.5
+ ){
+
+  obj.style.left=
+  (Math.random()*18)+"%";
+
+ }else{
+
+  obj.style.right=
+  (Math.random()*18)+"%";
+
+ }
+
+
+ game.appendChild(obj);
+
+ scenery.push({
+
+  element:obj,
+
+  y:-80
+
+ });
+
+}
+
+
+/* =========================
+   MOVE SCENERY
+========================= */
+
+function moveScenery(delta){
+
+ for(
+  let i=scenery.length-1;
+  i>=0;
+  i--
+ ){
+
+  let obj=
+  scenery[i];
+
+  obj.y+=
+  speed*.9*delta;
+
+  obj.element.style.top=
+  obj.y+"px";
+
+
+  if(
+   obj.y>
+   innerHeight+100
+  ){
+
+   obj.element.remove();
+
+   scenery.splice(i,1);
+
+  }
+
+ }
+
+}
+
+
+/* =========================
+   EVENTS
+========================= */
+
+const events=[
+
+ "BIG BUMP!",
+
+ "DUST STORM!",
+
+ "ROCKSLIDE!",
+
+ "BROKEN DOWN TRUCK!",
+
+ "ANIMAL CROSSING!",
+
+ "LOOSE ROCKS!",
+
+ "ROAD DAMAGE!"
+
+];
+
+
+function createEventObject(type){
+
+ let e=
+ document.createElement("div");
+
+ e.className="event";
+
+ if(
+  type==="ROCKSLIDE!"||
+  type==="LOOSE ROCKS!"
+ ){
+
+  e.textContent=
+  "🪨 🪨 🪨";
+
+ }
+
+ else if(
+  type==="BROKEN DOWN TRUCK!"
+ ){
+
+  e.textContent=
+  "🚚";
+
+ }
+
+ else if(
+  type==="ANIMAL CROSSING!"
+ ){
+
+  e.textContent=
+  Math.random()<.5
+  ?"🐪"
+  :"🦌";
+
+ }
+
+ else{
+
+  e.textContent=
+  "⚠️";
+
+ }
+
+
+ e.style.top=
+ "-100px";
+
+ road.appendChild(e);
+
+ traffic.push({
+
+  element:e,
+
+  y:-100
+
+ });
+
+}
+
+
+/* =========================
+   RANDOM EVENT
+========================= */
+
+function randomEvent(){
+
+ let event=
+ events[
+  Math.floor(
+   Math.random()*
+   events.length
+  )
+ ];
+
+ showMessage(event);
+
+
+ if(
+  event==="BIG BUMP!"
+ ){
+
+  shake(true);
+
+  return;
+
+ }
+
+
+ if(
+  event==="DUST STORM!"
+ ){
+
+  dust.style.opacity=
+  ".75";
+
+  setTimeout(
+   ()=>{
+    dust.style.opacity="0";
+   },
+   3000
+  );
+
+  return;
+
+ }
+
+
+ createEventObject(
+  event
+ );
+
+}
+
+
+/* =========================
+   MOVE EVENTS
+========================= */
+
+function moveEvents(delta){
+
+ for(
+  let i=traffic.length-1;
+  i>=0;
+  i--
+ ){
+
+  let obj=
+  traffic[i];
+
+  obj.y+=
+  speed*.9*delta;
+
+  obj.element.style.top=
+  obj.y+"px";
+
+
+  if(
+   nearPlayer(
+    obj.element
+   )
+  ){
+
+   fuel=
+   Math.max(
+    0,
+    fuel-8
+   );
+
+   shake();
+
+   showMessage(
+    "ROUGH ROAD!"
+   );
+
+   obj.element.remove();
+
+   traffic.splice(i,1);
+
+   continue;
+
+  }
+
+
+  if(
+   obj.y>
+   innerHeight+120
+  ){
+
+   obj.element.remove();
+
+   traffic.splice(i,1);
+
+  }
+
+ }
+
+}
+
+
+/* =========================
+   FUEL
+========================= */
+
+function updateFuel(){
+
+ fuelFill.style.width=
+ fuel+"%";
+
+ if(
+  fuel<25
+ ){
+
+  fuelFill.style.background=
+  "#d9362e";
+
+ }else if(
+  fuel<50
+ ){
+
+  fuelFill.style.background=
+  "#dfa928";
+
+ }else{
+
+  fuelFill.style.background=
+  "#39b85a";
+
+ }
+
+}
+
+
+/* =========================
+   GAME LOOP
+========================= */
+
+function gameLoop(time){
+
+ if(!running)return;
+
+
+ if(!lastTime)
+  lastTime=time;
+
+
+ let delta=
+ (time-lastTime)/16.67;
+
+
+ if(delta>3)
+  delta=3;
+
+
+ lastTime=time;
+
+
+ distance+=
+ speed*
+ delta*
+ .08;
+
+
+ fuel-=
+ .0025*
+ speed*
+ delta;
+
+
+ if(fuel<0)
+  fuel=0;
+
+
+ updatePlayer(delta);
+
+ moveRoad(delta);
+
+ movePeople(delta);
+
+ moveScenery(delta);
+
+ moveEvents(delta);
+
+
+ personTimer-=delta;
+
+ sceneryTimer-=delta;
+
+ eventTimer-=delta;
+
+ bumpTimer-=delta;
+
+
+/* PEOPLE */
+
+ if(
+  personTimer<=0
+ ){
+
+  createPerson();
+
+  personTimer=
+  850+
+  Math.random()*1300;
+
+ }
+
+
+/* SCENERY */
+
+ if(
+  sceneryTimer<=0
+ ){
+
+  createScenery();
+
+  sceneryTimer=
+  250+
+  Math.random()*500;
+
+ }
+
+
+/* EVENTS */
+
+ if(
+  eventTimer<=0
+ ){
+
+  if(
+   Math.random()<.7
+  ){
+
+   randomEvent();
+
+  }
+
+  eventTimer=
+  2200+
+  Math.random()*3500;
+
+ }
+
+
+/* RANDOM BUMPS */
+
+ if(
+  bumpTimer<=0
+ ){
+
+  if(
+   Math.random()<.025
+  ){
+
+   shake();
+
+   showMessage(
+    "BUMP!"
+   );
+
+  }
+
+  bumpTimer=
+  300+
+  Math.random()*500;
+
+ }
+
+
+ updateFuel();
+
+
+ distanceText.textContent=
+ Math.floor(distance);
+
+
+ if(
+  fuel<=0
+ ){
+
+  endGame(
+   "OUT OF FUEL"
+  );
+
+  return;
+
+ }
+
+
+ requestAnimationFrame(
+  gameLoop
+ );
+
+}
+
+
+/* =========================
+   CLEAR
+========================= */
+
+function clearObjects(){
+
+ people.forEach(
+  p=>{
+   if(
+    p.element.parentNode
+   )
+    p.element.remove();
+  }
+ );
+
+ traffic.forEach(
+  t=>{
+   if(
+    t.element.parentNode
+   )
+    t.element.remove();
+  }
+ );
+
+ scenery.forEach(
+  s=>{
+   if(
+    s.element.parentNode
+   )
+    s.element.remove();
+  }
+ );
+
+ people=[];
+ traffic=[];
+ scenery=[];
+
+}
+
+
+/* =========================
+   START GAME
+========================= */
+
+function startGame(){
+
+ clearObjects();
+
+ running=true;
+
+ lastTime=0;
+
+ playerX=0;
+
+ steering=0;
+
+ distance=0;
+
+ passengers=0;
+
+ money=0;
+
+ fuel=100;
+
+ speed=12;
+
+ personTimer=400;
+
+ sceneryTimer=100;
+
+ eventTimer=1800;
+
+ bumpTimer=400;
+
+
+ player.style.left=
+ "calc(50% + 0px)";
+
+
+ distanceText.textContent=
+ "0";
+
+ passengersText.textContent=
+ "0";
+
+ moneyText.textContent=
+ "0";
+
+
+ updateFuel();
+
+
+ startScreen.classList.add(
+  "hidden"
+ );
+
+ gameOver.classList.add(
+  "hidden"
+ );
+
+
+ requestAnimationFrame(
+  gameLoop
+ );
+
+}
+
+
+/* =========================
+   GAME OVER
+========================= */
+
+function endGame(reason){
+
+ if(!running)return;
+
+ running=false;
+
+
+ if(
+  distance>bestDistance
+ ){
+
+  bestDistance=
+  Math.floor(distance);
+
+  localStorage.setItem(
+   "desertBest",
+   bestDistance
+  );
+
+ }
+
+
+ document.getElementById(
+  "gameOverTitle"
+ ).textContent=
+ reason;
+
+
+ document.getElementById(
+  "finalDistance"
+ ).textContent=
+ Math.floor(distance);
+
+
+ document.getElementById(
+  "finalPassengers"
+ ).textContent=
+ passengers;
+
+
+ document.getElementById(
+  "finalMoney"
+ ).textContent=
+ money;
+
+
+ document.getElementById(
+  "bestDistance"
+ ).textContent=
+ bestDistance;
+
+
+ gameOver.classList.remove(
+  "hidden"
+ );
+
+}
+
+
+/* =========================
+   KEYBOARD
+========================= */
+
+document.addEventListener(
+ "keydown",
+ function(e){
+
+  if(
+   e.key==="ArrowLeft"||
+   e.key.toLowerCase()==="a"
+  ){
+
+   steering=-1;
+
+  }
+
+
+  if(
+   e.key==="ArrowRight"||
+   e.key.toLowerCase()==="d"
+  ){
+
+   steering=1;
+
+  }
+
+ }
+);
+
+
+document.addEventListener(
+ "keyup",
+ function(e){
+
+  if(
+   e.key==="ArrowLeft"||
+   e.key==="ArrowRight"||
+   e.key.toLowerCase()==="a"||
+   e.key.toLowerCase()==="d"
+  ){
+
+   steering=0;
+
+  }
+
+ }
+);
+
+
+/* =========================
+   TOUCH
+========================= */
+
+const leftButton=
+document.getElementById(
+ "leftButton"
+);
+
+const rightButton=
+document.getElementById(
+ "rightButton"
+);
+
+
+function setupControl(
+ button,
+ direction
+){
+
+ button.addEventListener(
+  "pointerdown",
+  function(e){
+
+   e.preventDefault();
+
+   steering=
+   direction;
+
+  }
+ );
+
+
+ button.addEventListener(
+  "pointerup",
+  function(){
+
+   steering=0;
+
+  }
+ );
+
+
+ button.addEventListener(
+  "pointercancel",
+  function(){
+
+   steering=0;
+
+  }
+ );
+
+
+ button.addEventListener(
+  "pointerleave",
+  function(){
+
+   steering=0;
+
+  }
+ );
+
+}
+
+
+setupControl(
+ leftButton,
+ -1
+);
+
+setupControl(
+ rightButton,
+ 1
+);
+
+
+/* =========================
+   BUTTONS
+========================= */
+
+document.getElementById(
+ "startButton"
+).addEventListener(
+ "click",
+ startGame
+);
+
+
+document.getElementById(
+ "restartButton"
+).addEventListener(
+ "click",
+ startGame
+);
+
+
+/* =========================
+   INITIALIZE
+========================= */
+
+createRoadLines();
+
+updateFuel();
+
+</script>
+
+</body>
+  </html>
