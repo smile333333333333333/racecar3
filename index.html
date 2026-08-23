@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>Desert Run</title>
+<style>
+*{box-sizing:border-box;user-select:none}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;font-family:Arial;background:#d69b58}
+#game{position:relative;width:100vw;height:100vh;overflow:hidden}
+#desert{position:absolute;inset:0;background:linear-gradient(#63b4d3 0 35%,#d8a05b 35%)}
+.dune{position:absolute;width:150%;height:40%;left:-25%;border-radius:50%;background:#e3ad65}
+.d1{top:35%}.d2{top:55%;background:#c9904e}
+
+#road{
+ position:absolute;left:15%;width:70%;height:100%;
+ background:#806b4f;
+ clip-path:polygon(40% 0,60% 0,82% 100%,18% 100%);
+ z-index:5;
+}
+#road:after{
+ content:"";position:absolute;inset:0;
+ background:repeating-linear-gradient(to bottom,transparent 0,transparent 105px,rgba(255,255,255,.18) 106px,rgba(255,255,255,.18) 111px)
+}
+.edge{position:absolute;top:0;width:6px;height:100%;background:#d3b47a;z-index:7}
+.el{left:calc(15% + 27%);transform:skewX(9deg)}
+.er{right:calc(15% + 27%);transform:skewX(-9deg)}
+
+#player{
+ position:absolute;width:56px;height:92px;left:50%;bottom:65px;
+ transform:translateX(-50%);background:#c53c25;border-radius:11px;
+ box-shadow:0 7px 14px #222;z-index:50
+}
+.window{position:absolute;width:40px;height:28px;left:8px;top:10px;background:#91cfdd;border-radius:6px}
+.stripe{position:absolute;width:44px;height:6px;left:6px;top:44px;background:#f1d06d}
+.wheel{position:absolute;width:10px;height:28px;top:23px;background:#111;border-radius:4px}
+.wl{left:-7px}.wr{right:-7px}
+.light{position:absolute;width:11px;height:7px;bottom:5px;background:#fff2a8}
+.ll{left:8px}.lr{right:8px}
+
+.person{
+ position:absolute;width:28px;height:58px;z-index:30
+}
+.person:before{
+ content:"";position:absolute;width:19px;height:19px;left:5px;
+ border-radius:50%;background:#c47e53
+}
+.person:after{
+ content:"";position:absolute;width:23px;height:31px;left:2px;top:20px;
+ border-radius:7px;background:#405d72
+}
+.tag{
+ position:absolute;bottom:59px;left:50%;transform:translateX(-50%);
+ background:white;color:#222;padding:4px 6px;border-radius:6px;
+ font-size:9px;font-weight:bold;white-space:nowrap
+}
+
+.cactus{
+ position:absolute;width:14px;height:55px;background:#397447;
+ border-radius:8px;z-index:12
+}
+.cactus:after{
+ content:"";position:absolute;width:34px;height:10px;left:-10px;top:24px;
+ border-radius:8px;background:#397447
+}
+
+#hud{
+ position:absolute;top:10px;left:10px;z-index:150;color:white;
+ font-weight:bold;font-size:16px;line-height:1.6;text-shadow:2px 2px 4px #222
+}
+#fuel{display:inline-block;width:120px;height:15px;background:#222;border:2px solid white}
+#fuelFill{display:block;width:100%;height:100%;background:#38b85a}
+#message{
+ position:absolute;top:105px;left:50%;transform:translateX(-50%);
+ z-index:160;background:#000b;color:white;padding:8px 13px;
+ border-radius:9px;font-weight:bold;opacity:0
+}
+#dust{position:absolute;inset:0;background:#c9a36e99;z-index:90;opacity:0;pointer-events:none}
+
+#controls{
+ position:absolute;bottom:16px;left:50%;transform:translateX(-50%);
+ display:flex;gap:20px;z-index:170
+}
+.control{
+ width:85px;height:62px;display:flex;align-items:center;justify-content:center;
+ background:#0009;border:2px solid white;border-radius:12px;
+ color:white;font-size:32px;touch-action:none
+}
+
+.screen{
+ position:absolute;inset:0;z-index:300;background:#000c;color:white;
+ display:flex;flex-direction:column;justify-content:center;align-items:center;
+ text-align:center;padding:25px
+}
+.screen h1{font-size:42px;letter-spacing:3px;margin:0 0 12px}
+.screen p{max-width:480px;line-height:1.5}
+button{
+ border:0;border-radius:9px;padding:15px 32px;background:#d05b22;
+ color:white;font-size:20px;font-weight:bold
+}
+.hidden{display:none!important}
+
+.shake{animation:shake .18s}
+@keyframes shake{
+ 0%{transform:translate(0)}
+ 25%{transform:translate(-7px,4px)}
+ 50%{transform:translate(6px,-4px)}
+ 75%{transform:translate(-5px,3px)}
+ 100%{transform:translate(0)}
+}
+</style>
+</head>
+
+<body>
+<div id="game">
+
+<div id="desert">
+ <div class="dune d1"></div>
+ <div class="dune d2"></div>
+</div>
+
+<div id="road"></div>
+<div class="edge el"></div>
+<div class="edge er"></div>
+
+<div id="player">
+ <div class="window"></div>
+ <div class="stripe"></div>
+ <div class="wheel wl"></div>
+ <div class="wheel wr"></div>
+ <div class="light ll"></div>
+ <div class="light lr"></div>
+</div>
+
+<div id="hud">
+DISTANCE: <span id="distance">0</span> km<br>
+PASSENGERS: <span id="passengers">0</span><br>
+MONEY: $<span id="money">0</span><br>
+FUEL: <span id="fuel"><span id="fuelFill"></span></span>
+</div>
+
+<div id="message"></div>
+<div id="dust"></div>
+
+<div id="controls">
+ <div class="control" id="left">◀</div>
+ <div class="control" id="right">▶</div>
+</div>
+
+<div id="start" class="screen">
+ <h1>DESERT RUN</h1>
+ <p>
+ Drive across the desert, pick up stranded people
+ and survive random events.
+ <br><br>
+ <b>Arrow Keys / A & D</b> or use the buttons.
+ </p>
+ <button id="startBtn">START RUN</button>
+</div>
+
+<div id="over" class="screen hidden">
+ <h1 id="reason">RUN OVER</h1>
+ <p>
+ Distance: <b><span id="finalDistance">0</span> km</b><br>
+ Passengers: <b><span id="finalPassengers">0</span></b><br>
+ Money: <b>$<span id="finalMoney">0</span></b>
+ </p>
+ <button id="restart">TRY AGAIN</button>
+</div>
+
+</div>
+
+<script>
+const game=document.getElementById("game");
+const road=document.getElementById("road");
+const player=document.getElementById("player");
+const distanceEl=document.getElementById("distance");
+const passengersEl=document.getElementById("passengers");
+const moneyEl=document.getElementById("money");
+const fuelFill=document.getElementById("fuelFill");
+const message=document.getElementById("message");
+const dust=document.getElementById("dust");
+const start=document.getElementById("start");
+const over=document.getElementById("over");
+
+let running=false;
+let last=0;
+let x=0;
+let steering=0;
+let distance=0;
+let passengers=0;
+let money=0;
+let fuel=100;
+let speed=11;
+let people=[];
+let things=[];
+let personTimer=500;
+let eventTimer=1800;
+let sceneryTimer=200;
+
+const events=[
+ "BIG BUMP!",
+ "DUST STORM!",
+ "ROCKSLIDE!",
+ "DESERT WIND!",
+ "BROKEN DOWN TRUCK!",
+ "STRANGE SIGN!",
+ "ANIMAL CROSSING!"
+];
+
+function msg(t){
+ message.textContent=t;
+ message.style.opacity=1;
+ clearTimeout(msg.t);
+ msg.t=setTimeout(()=>message.style.opacity=0,1300);
+}
+
+function shake(){
+ game.classList.remove("shake");
+ void game.offsetWidth;
+ game.classList.add("shake");
+}
+
+function steer(dt){
+ x+=steering*1.7*dt;
+ let limit=road.clientWidth/2-35;
+ x=Math.max(-limit,Math.min(limit,x));
+ player.style.left=`calc(50% + ${x}px)`;
+}
+
+function person(){
+ if(!running)return;
+
+ let p=document.createElement("div");
+ p.className="person";
+ p.innerHTML='<div class="tag">PICK ME UP</div>';
+
+ let left=Math.random()<.5;
+ let px=left
+  ? road.clientWidth*(.18+Math.random()*.12)
+  : road.clientWidth*(.70+Math.random()*.12);
+
+ p.style.left=px+"px";
+ p.style.top="-70px";
+ road.appendChild(p);
+
+ people.push({el:p,x:px,y:-70});
+}
+
+function near(a,b){
+ let A=a.getBoundingClientRect(),B=b.getBoundingClientRect();
+ return !(A.right<B.left-20||A.left>B.right+20||A.bottom<B.top||A.top>B.bottom);
+}
+
+function movePeople(dt){
+ for(let i=people.length-1;i>=0;i--){
+  let p=people[i];
+  p.y+=speed*dt;
+  p.el.style.top=p.y+"px";
+
+  if(near(player,p.el)){
+   passengers++;
+   money+=20+Math.floor(Math.random()*31);
+   passengersEl.textContent=passengers;
+   moneyEl.textContent=money;
+   msg("PASSENGER PICKED UP!");
+   p.el.remove();
+   people.splice(i,1);
+   continue;
+  }
+
+  if(p.y>innerHeight+80){
+   p.el.remove();
+   people.splice(i,1);
+  }
+ }
+}
+
+function scenery(){
+ let c=document.createElement("div");
+ c.className="cactus";
+ c.style.top="-70px";
+
+ if(Math.random()<.5)c.style.left=Math.random()*12+"%";
+ else c.style.right=Math.random()*12+"%";
+
+ game.appendChild(c);
+ things.push({el:c,y:-70,type:"scenery"});
+}
+
+function obstacle(type){
+ let e=document.createElement("div");
+ e.style.position="absolute";
+ e.style.zIndex=40;
+ e.style.left="50%";
+ e.style.transform="translateX(-50%)";
+ e.style.top="-100px";
+ e.style.fontSize="45px";
+
+ if(type==="ROCKSLIDE!")e.textContent="🪨🪨🪨";
+ if(type==="BROKEN DOWN TRUCK!")e.textContent="🚚";
+ if(type==="ANIMAL CROSSING!")e.textContent=Math.random()<.5?"🐪":"🦌";
+ if(type==="STRANGE SIGN!")e.textContent="⚠️";
+
+ road.appendChild(e);
+ things.push({el:e,y:-100,type:"danger"});
+}
+
+function event(){
+ let e=events[Math.floor(Math.random()*events.length)];
+ msg(e);
+
+ if(e==="BIG BUMP!"){
+  shake();
+  return;
+ }
+
+ if(e==="DUST STORM!"||e==="DESERT WIND!"){
+  dust.style.opacity=e==="DUST STORM!"?.7:.4;
+  setTimeout(()=>dust.style.opacity=0,2500);
+  return;
+ }
+
+ obstacle(e);
+}
+
+function moveThings(dt){
+ for(let i=things.length-1;i>=0;i--){
+  let o=things[i];
+  o.y+=speed*dt;
+  o.el.style.top=o.y+"px";
+
+  if(o.type==="danger"&&near(player,o.el)){
+   shake();
+   fuel=Math.max(0,fuel-7);
+   msg("ROUGH ROAD!");
+   o.el.remove();
+   things.splice(i,1);
+   continue;
+  }
+
+  if(o.y>innerHeight+120){
+   o.el.remove();
+   things.splice(i,1);
+  }
+ }
+}
+
+function updateFuel(){
+ fuelFill.style.width=fuel+"%";
+ fuelFill.style.background=fuel<25?"#d33":fuel<50?"#dfaa28":"#39b85a";
+}
+
+function loop(t){
+ if(!running)return;
+
+ if(!last)last=t;
+ let dt=(t-last)/16.67;
+ if(dt>3)dt=3;
+ last=t;
+
+ distance+=speed*dt*.08;
+ fuel-=.0025*speed*dt;
+ fuel=Math.max(0,fuel);
+
+ steer(dt);
+ movePeople(dt);
+ moveThings(dt);
+
+ personTimer-=dt;
+ sceneryTimer-=dt;
+ eventTimer-=dt;
+
+ if(personTimer<=0){
+  person();
+  personTimer=850+Math.random()*1200;
+ }
+
+ if(sceneryTimer<=0){
+  scenery();
+  sceneryTimer=250+Math.random()*450;
+ }
+
+ if(eventTimer<=0){
+  if(Math.random()<.7)event();
+  eventTimer=2200+Math.random()*3000;
+ }
+
+ updateFuel();
+
+ distanceEl.textContent=Math.floor(distance);
+
+ if(fuel<=0){
+  end("OUT OF FUEL");
+  return;
+ }
+
+ requestAnimationFrame(loop);
+}
+
+function clearAll(){
+ people.forEach(p=>p.el.remove());
+ things.forEach(t=>t.el.remove());
+ people=[];
+ things=[];
+}
+
+function startGame(){
+ clearAll();
+
+ running=true;
+ last=0;
+ x=0;
+ steering=0;
+ distance=0;
+ passengers=0;
+ money=0;
+ fuel=100;
+ speed=11;
+ personTimer=500;
+ sceneryTimer=100;
+ eventTimer=1800;
+
+ player.style.left="50%";
+ distanceEl.textContent=0;
+ passengersEl.textContent=0;
+ moneyEl.textContent=0;
+ updateFuel();
+
+ start.classList.add("hidden");
+ over.classList.add("hidden");
+
+ requestAnimationFrame(loop);
+}
+
+function end(text){
+ if(!running)return;
+
+ running=false;
+
+ document.getElementById("reason").textContent=text;
+ document.getElementById("finalDistance").textContent=Math.floor(distance);
+ document.getElementById("finalPassengers").textContent=passengers;
+ document.getElementById("finalMoney").textContent=money;
+
+ over.classList.remove("hidden");
+}
+
+function setSteering(v){
+ steering=v;
+}
+
+document.addEventListener("keydown",e=>{
+ if(e.key==="ArrowLeft"||e.key.toLowerCase()==="a")setSteering(-1);
+ if(e.key==="ArrowRight"||e.key.toLowerCase()==="d")setSteering(1);
+});
+
+document.addEventListener("keyup",e=>{
+ if(
+  e.key==="ArrowLeft"||
+  e.key==="ArrowRight"||
+  e.key.toLowerCase()==="a"||
+  e.key.toLowerCase()==="d"
+ )setSteering(0);
+});
+
+function button(el,v){
+ el.addEventListener("pointerdown",e=>{
+  e.preventDefault();
+  setSteering(v);
+ });
+ el.addEventListener("pointerup",()=>setSteering(0));
+ el.addEventListener("pointercancel",()=>setSteering(0));
+ el.addEventListener("pointerleave",()=>setSteering(0));
+}
+
+button(document.getElementById("left"),-1);
+button(document.getElementById("right"),1);
+
+document.getElementById("startBtn").onclick=startGame;
+document.getElementById("restart").onclick=startGame;
+</script>
+
+</body>
+  </html>
